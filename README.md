@@ -51,44 +51,42 @@ Add this to your Claude Desktop config file:
 **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
+#### Option A: Direct Environment Variables (Simplest - No JSON file needed!)
+
 ```json
 {
   "mcpServers": {
     "google-calendar": {
       "command": "npx",
-      "args": [
-        "-y",
-        "mcp-google-calendar-plus"
-      ],
+      "args": ["-y", "mcp-google-calendar-plus"],
       "env": {
-        "GOOGLE_OAUTH_CREDENTIALS": "/path/to/your/oauth-credentials.json"
+        "GOOGLE_CLIENT_ID": "YOUR_CLIENT_ID.apps.googleusercontent.com",
+        "GOOGLE_CLIENT_SECRET": "YOUR_CLIENT_SECRET"
       }
     }
   }
 }
 ```
 
-### 3. Set Up OAuth Credentials File
-
-The credentials file you downloaded from Google Cloud Console will be in the correct format:
+#### Option B: Use Downloaded Google Credentials File
 
 ```json
 {
-  "installed": {
-    "client_id": "YOUR_CLIENT_ID.apps.googleusercontent.com",
-    "client_secret": "YOUR_CLIENT_SECRET",
-    "project_id": "your-project-id",
-    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-    "token_uri": "https://oauth2.googleapis.com/token",
-    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-    "redirect_uris": ["http://localhost"]
+  "mcpServers": {
+    "google-calendar": {
+      "command": "npx",
+      "args": ["-y", "mcp-google-calendar-plus"],
+      "env": {
+        "GOOGLE_OAUTH_CREDENTIALS": "/path/to/downloaded/credentials.json"
+      }
+    }
   }
 }
 ```
 
-Save this file somewhere secure and update the `GOOGLE_OAUTH_CREDENTIALS` path in your Claude config.
+Just use the file path where you saved the JSON file downloaded from Google Cloud Console.
 
-### 4. Authenticate
+### 3. Authenticate
 
 1. Restart Claude Desktop
 2. The MCP server will open a browser window for authentication
@@ -202,6 +200,12 @@ MIT
 Contributions are welcome! Please open an issue or submit a pull request on [GitHub](https://github.com/199-biotechnologies/mcp-google-calendar-plus).
 
 ## Changelog
+
+### v1.1.0
+- **Simplified setup**: Added support for direct environment variables (no JSON file needed!)
+- Users can now use `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` directly in Claude config
+- Updated README with clearer Desktop app OAuth setup instructions
+- Removed unnecessary redirect URI configuration steps
 
 ### v1.0.1
 - Added automatic retry logic for network errors
