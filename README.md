@@ -31,13 +31,18 @@ npm install -g mcp-google-calendar-plus
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a new project or select an existing one
-3. Enable the Google Calendar API
-4. Create OAuth 2.0 credentials:
+3. Enable the [Google Calendar API](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com)
+4. Configure OAuth consent screen:
+   - Go to "APIs & Services" > "OAuth consent screen"
+   - Choose "External" user type
+   - Fill in required fields (app name, support email, etc.)
+   - Add your email as a test user (required while in test mode)
+5. Create OAuth 2.0 credentials:
    - Go to "APIs & Services" > "Credentials"
    - Click "Create Credentials" > "OAuth client ID"
-   - Choose "Web application"
-   - Add `http://localhost:3000/callback` to Authorized redirect URIs
-   - Save your Client ID and Client Secret
+   - Choose **"Desktop app"** as the application type
+   - Name your OAuth client (e.g., "MCP Calendar Client")
+   - Download the credentials JSON file
 
 ### 2. Configure Claude Desktop
 
@@ -63,21 +68,25 @@ Add this to your Claude Desktop config file:
 }
 ```
 
-### 3. Create OAuth Credentials File
+### 3. Set Up OAuth Credentials File
 
-Create a JSON file with your OAuth credentials:
+The credentials file you downloaded from Google Cloud Console will be in the correct format:
 
 ```json
 {
   "installed": {
     "client_id": "YOUR_CLIENT_ID.apps.googleusercontent.com",
     "client_secret": "YOUR_CLIENT_SECRET",
+    "project_id": "your-project-id",
     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
     "token_uri": "https://oauth2.googleapis.com/token",
-    "redirect_uris": ["http://localhost:3000/callback"]
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "redirect_uris": ["http://localhost"]
   }
 }
 ```
+
+Save this file somewhere secure and update the `GOOGLE_OAUTH_CREDENTIALS` path in your Claude config.
 
 ### 4. Authenticate
 
