@@ -1,6 +1,17 @@
 # MCP Google Calendar Plus
 
-Enhanced Google Calendar integration for Claude Desktop using the Model Context Protocol (MCP). This server provides comprehensive calendar management capabilities with OAuth2 authentication.
+**The ONLY MCP server that enables Claude, Cursor, Windsurf and other AI systems to fully manage Google Calendar** - create, update, and delete events, not just read them!
+
+Enhanced Google Calendar integration for Claude Desktop and other AI agents using the Model Context Protocol (MCP). This server provides comprehensive calendar management capabilities with OAuth2 authentication.
+
+## Why This MCP Server?
+
+Other calendar MCP servers only provide **read-only** access. This is the **only MCP server** that gives AI systems like Claude, Cursor, and Windsurf the ability to:
+- ✅ **Create** new calendar events
+- ✅ **Update** existing events (including recurring events)
+- ✅ **Delete** events
+- ✅ **Manage** multiple calendars
+- ✅ **Check availability** across calendars
 
 ## Features
 
@@ -200,6 +211,11 @@ MIT
 Contributions are welcome! Please open an issue or submit a pull request on [GitHub](https://github.com/199-biotechnologies/mcp-google-calendar-plus).
 
 ## Changelog
+
+### v1.1.1
+- Enhanced documentation to highlight unique full calendar management capabilities
+- Added "Why This MCP Server?" section emphasizing create/update/delete features
+- Updated package description and keywords for better discoverability
 
 ### v1.1.0
 - **Simplified setup**: Added support for direct environment variables (no JSON file needed!)
