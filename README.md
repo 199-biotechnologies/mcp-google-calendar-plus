@@ -212,6 +212,12 @@ Contributions are welcome! Please open an issue or submit a pull request on [Git
 
 ## Changelog
 
+### v1.1.2
+- Improved authentication flow with clear, informative landing page
+- Users now see exactly what permissions Claude will have before connecting
+- Professional UI that clearly identifies this as Google Calendar authentication
+- Added security note that credentials are never stored
+
 ### v1.1.1
 - Enhanced documentation to highlight unique full calendar management capabilities
 - Added "Why This MCP Server?" section emphasizing create/update/delete features

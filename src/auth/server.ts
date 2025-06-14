@@ -32,7 +32,52 @@ export class AuthServer {
         scope: scopes,
         prompt: 'consent'
       });
-      res.send(`<h1>Google Calendar Authentication</h1><a href="${authUrl}">Authenticate with Google</a>`);
+      res.send(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Google Calendar MCP Authentication</title>
+            <style>
+                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f5f5f5; margin: 0; padding: 20px; }
+                .container { text-align: center; padding: 2.5em; background-color: #fff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; }
+                h1 { color: #1a73e8; margin-bottom: 0.5em; }
+                h2 { color: #333; font-weight: normal; font-size: 1.2em; margin-bottom: 1.5em; }
+                p { color: #666; line-height: 1.6; margin-bottom: 1.5em; }
+                .btn { display: inline-block; background-color: #1a73e8; color: white; padding: 12px 32px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; transition: background-color 0.2s; }
+                .btn:hover { background-color: #1557b0; }
+                .permissions { background-color: #f8f9fa; padding: 1em; border-radius: 8px; margin: 1.5em 0; text-align: left; }
+                .permissions h3 { margin: 0 0 0.5em 0; font-size: 1em; color: #333; }
+                .permissions ul { margin: 0; padding-left: 1.5em; color: #666; }
+                .permissions li { margin: 0.3em 0; }
+                .footer { margin-top: 2em; font-size: 0.9em; color: #999; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>🗓️ Google Calendar MCP</h1>
+                <h2>Authentication Required</h2>
+                <p>Claude Desktop needs permission to access your Google Calendar.</p>
+                
+                <div class="permissions">
+                    <h3>This will allow Claude to:</h3>
+                    <ul>
+                        <li>View your calendar events</li>
+                        <li>Create new calendar events</li>
+                        <li>Update existing events</li>
+                        <li>Delete events</li>
+                        <li>Check your availability</li>
+                    </ul>
+                </div>
+                
+                <a href="${authUrl}" class="btn">Connect Google Calendar</a>
+                
+                <p class="footer">You'll be redirected to Google to sign in securely.<br>Your credentials are never stored by this application.</p>
+            </div>
+        </body>
+        </html>
+      `);
     });
 
     this.app.get('/oauth2callback', async (req, res) => {
