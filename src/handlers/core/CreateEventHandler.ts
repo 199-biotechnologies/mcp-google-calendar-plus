@@ -34,13 +34,48 @@ export class CreateEventHandler extends BaseToolHandler {
                 reminders: args.reminders,
                 recurrence: args.recurrence,
             };
+            
+            // Try to create the event with built-in retry logic
             const response = await calendar.events.insert({
                 calendarId: args.calendarId,
                 requestBody: requestBody,
             });
+            
             if (!response.data) throw new Error('Failed to create event, no data returned');
             return response.data;
-        } catch (error) {
+        } catch (error: any) {
+            // If it's a socket error but we get a response, check if event was created
+            if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') {
+                try {
+                    // Wait a bit and then check if the event was created
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const calendar = this.getCalendar(client);
+                    const now = new Date();
+                    const events = await calendar.events.list({
+                        calendarId: args.calendarId,
+                        timeMin: new Date(now.getTime() - 60000).toISOString(), // Last minute
+                        singleEvents: true,
+                        orderBy: 'startTime',
+                        maxResults: 10,
+                    });
+                    
+                    // Look for the event we just tried to create
+                    const createdEvent = events.data.items?.find(
+                        event => event.summary === args.summary && 
+                                event.start?.dateTime === args.start &&
+                                event.end?.dateTime === args.end
+                    );
+                    
+                    if (createdEvent) {
+                        // Event was created despite the error
+                        return createdEvent;
+                    }
+                } catch (checkError) {
+                    // If check fails, throw the original error
+                }
+            }
+            
             throw this.handleGoogleApiError(error);
         }
     }

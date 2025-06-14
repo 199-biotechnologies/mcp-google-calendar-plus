@@ -38,11 +38,13 @@ export async function initializeOAuth2Client(): Promise<OAuth2Client> {
     const credentials = await loadCredentialsWithFallback();
     
     // Use the first redirect URI as the default for the base client
-    return new OAuth2Client({
+    const oauth2Client = new OAuth2Client({
       clientId: credentials.client_id,
       clientSecret: credentials.client_secret,
       redirectUri: credentials.redirect_uris[0],
     });
+
+    return oauth2Client;
   } catch (error) {
     throw new Error(`Error loading OAuth keys: ${error instanceof Error ? error.message : error}`);
   }

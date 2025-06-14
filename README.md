@@ -178,6 +178,12 @@ npm run build
 npm start
 ```
 
+## Team
+
+Developed by **[Boris Djordjevic](https://github.com/biobook)** and the **[199 Longevity](https://github.com/199-biotechnologies)** team.
+
+Built on top of the original [google-calendar-mcp](https://github.com/nspady/google-calendar-mcp) by nspady.
+
 ## License
 
 MIT
@@ -185,3 +191,16 @@ MIT
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request on [GitHub](https://github.com/199-biotechnologies/mcp-google-calendar-plus).
+
+## Changelog
+
+### v1.0.1
+- Added automatic retry logic for network errors
+- Improved error handling for socket hang-up issues
+- Silent recovery when events are created despite connection errors
+
+### v1.0.0
+- Initial release with enhanced OAuth2 authentication
+- Comprehensive calendar management tools
+- Multi-calendar support
+- Free/busy queries
