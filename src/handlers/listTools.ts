@@ -364,6 +364,384 @@ export function getToolDefinitions() {
           },
           required: ["timeMin", "timeMax", "items"],
         },
+      },
+      {
+        name: "list-contacts",
+        description: "List contacts from Google Contacts",
+        inputSchema: {
+          type: "object",
+          properties: {
+            pageSize: {
+              type: "number",
+              description: "Maximum number of contacts to return (default: 100, max: 2000)",
+            },
+            pageToken: {
+              type: "string",
+              description: "Token for pagination to get the next page of results",
+            },
+            query: {
+              type: "string",
+              description: "Optional search query to filter contacts",
+            },
+            personFields: {
+              type: "array",
+              description: "Fields to include in the response (default: names,emailAddresses,phoneNumbers,addresses,organizations,biographies,photos)",
+              items: {
+                type: "string",
+                enum: ["addresses", "ageRanges", "biographies", "birthdays", "calendarUrls", "clientData", "coverPhotos", "emailAddresses", "events", "externalIds", "genders", "imClients", "interests", "locales", "locations", "memberships", "metadata", "miscKeywords", "names", "nicknames", "occupations", "organizations", "phoneNumbers", "photos", "relations", "sipAddresses", "skills", "urls", "userDefined"]
+              }
+            },
+            sources: {
+              type: "array",
+              description: "Sources to get contacts from (default: READ_SOURCE_TYPE_CONTACT)",
+              items: {
+                type: "string",
+                enum: ["READ_SOURCE_TYPE_CONTACT", "READ_SOURCE_TYPE_PROFILE", "READ_SOURCE_TYPE_DOMAIN_PROFILE", "READ_SOURCE_TYPE_OTHER_CONTACT"]
+              }
+            }
+          },
+          required: [],
+        },
+      },
+      {
+        name: "get-contact",
+        description: "Get details of a specific contact",
+        inputSchema: {
+          type: "object",
+          properties: {
+            resourceName: {
+              type: "string",
+              description: "Resource name of the contact (e.g., 'people/c1234567890')",
+            },
+            personFields: {
+              type: "array",
+              description: "Fields to include in the response",
+              items: {
+                type: "string",
+                enum: ["addresses", "ageRanges", "biographies", "birthdays", "calendarUrls", "clientData", "coverPhotos", "emailAddresses", "events", "externalIds", "genders", "imClients", "interests", "locales", "locations", "memberships", "metadata", "miscKeywords", "names", "nicknames", "occupations", "organizations", "phoneNumbers", "photos", "relations", "sipAddresses", "skills", "urls", "userDefined"]
+              }
+            }
+          },
+          required: ["resourceName"],
+        },
+      },
+      {
+        name: "create-contact",
+        description: "Create a new contact in Google Contacts",
+        inputSchema: {
+          type: "object",
+          properties: {
+            givenName: {
+              type: "string",
+              description: "First name of the contact",
+            },
+            familyName: {
+              type: "string",
+              description: "Last name of the contact",
+            },
+            middleName: {
+              type: "string",
+              description: "Middle name of the contact",
+            },
+            displayName: {
+              type: "string",
+              description: "Display name (defaults to 'givenName familyName' if not provided)",
+            },
+            emailAddresses: {
+              type: "array",
+              description: "Email addresses for the contact",
+              items: {
+                type: "object",
+                properties: {
+                  value: {
+                    type: "string",
+                    format: "email",
+                    description: "Email address",
+                  },
+                  type: {
+                    type: "string",
+                    enum: ["home", "work", "other"],
+                    description: "Type of email address (default: home)",
+                  },
+                },
+                required: ["value"],
+              },
+            },
+            phoneNumbers: {
+              type: "array",
+              description: "Phone numbers for the contact",
+              items: {
+                type: "object",
+                properties: {
+                  value: {
+                    type: "string",
+                    description: "Phone number",
+                  },
+                  type: {
+                    type: "string",
+                    enum: ["home", "work", "mobile", "homeFax", "workFax", "otherFax", "pager", "workMobile", "workPager", "main", "googleVoice", "other"],
+                    description: "Type of phone number (default: home)",
+                  },
+                },
+                required: ["value"],
+              },
+            },
+            addresses: {
+              type: "array",
+              description: "Physical addresses for the contact",
+              items: {
+                type: "object",
+                properties: {
+                  streetAddress: {
+                    type: "string",
+                    description: "Street address",
+                  },
+                  city: {
+                    type: "string",
+                    description: "City",
+                  },
+                  region: {
+                    type: "string",
+                    description: "State or region",
+                  },
+                  postalCode: {
+                    type: "string",
+                    description: "Postal or ZIP code",
+                  },
+                  country: {
+                    type: "string",
+                    description: "Country",
+                  },
+                  type: {
+                    type: "string",
+                    enum: ["home", "work", "other"],
+                    description: "Type of address (default: home)",
+                  },
+                },
+              },
+            },
+            organizations: {
+              type: "array",
+              description: "Organizations/companies for the contact",
+              items: {
+                type: "object",
+                properties: {
+                  name: {
+                    type: "string",
+                    description: "Organization name",
+                  },
+                  title: {
+                    type: "string",
+                    description: "Job title",
+                  },
+                  department: {
+                    type: "string",
+                    description: "Department",
+                  },
+                  type: {
+                    type: "string",
+                    enum: ["work", "school", "other"],
+                    description: "Type of organization (default: work)",
+                  },
+                },
+              },
+            },
+            biographies: {
+              type: "array",
+              description: "Biographical information",
+              items: {
+                type: "object",
+                properties: {
+                  value: {
+                    type: "string",
+                    description: "Biography text",
+                  },
+                  contentType: {
+                    type: "string",
+                    enum: ["TEXT_PLAIN", "TEXT_HTML"],
+                    description: "Content type (default: TEXT_PLAIN)",
+                  },
+                },
+                required: ["value"],
+              },
+            },
+            notes: {
+              type: "string",
+              description: "Notes about the contact (will be added as a biography if biographies not provided)",
+            },
+          },
+          required: [],
+        },
+      },
+      {
+        name: "update-contact",
+        description: "Update an existing contact",
+        inputSchema: {
+          type: "object",
+          properties: {
+            resourceName: {
+              type: "string",
+              description: "Resource name of the contact to update (e.g., 'people/c1234567890')",
+            },
+            updatePersonFields: {
+              type: "array",
+              description: "Fields to update (must specify which fields are being updated)",
+              items: {
+                type: "string",
+                enum: ["names", "emailAddresses", "phoneNumbers", "addresses", "organizations", "biographies"]
+              }
+            },
+            givenName: {
+              type: "string",
+              description: "First name (required if updating names)",
+            },
+            familyName: {
+              type: "string",
+              description: "Last name (required if updating names)",
+            },
+            middleName: {
+              type: "string",
+              description: "Middle name",
+            },
+            displayName: {
+              type: "string",
+              description: "Display name",
+            },
+            emailAddresses: {
+              type: "array",
+              description: "Email addresses (replaces all existing if updating)",
+              items: {
+                type: "object",
+                properties: {
+                  value: {
+                    type: "string",
+                    format: "email",
+                    description: "Email address",
+                  },
+                  type: {
+                    type: "string",
+                    enum: ["home", "work", "other"],
+                    description: "Type of email address",
+                  },
+                },
+                required: ["value"],
+              },
+            },
+            phoneNumbers: {
+              type: "array",
+              description: "Phone numbers (replaces all existing if updating)",
+              items: {
+                type: "object",
+                properties: {
+                  value: {
+                    type: "string",
+                    description: "Phone number",
+                  },
+                  type: {
+                    type: "string",
+                    enum: ["home", "work", "mobile", "homeFax", "workFax", "otherFax", "pager", "workMobile", "workPager", "main", "googleVoice", "other"],
+                    description: "Type of phone number",
+                  },
+                },
+                required: ["value"],
+              },
+            },
+            addresses: {
+              type: "array",
+              description: "Physical addresses (replaces all existing if updating)",
+              items: {
+                type: "object",
+                properties: {
+                  streetAddress: {
+                    type: "string",
+                    description: "Street address",
+                  },
+                  city: {
+                    type: "string",
+                    description: "City",
+                  },
+                  region: {
+                    type: "string",
+                    description: "State or region",
+                  },
+                  postalCode: {
+                    type: "string",
+                    description: "Postal or ZIP code",
+                  },
+                  country: {
+                    type: "string",
+                    description: "Country",
+                  },
+                  type: {
+                    type: "string",
+                    enum: ["home", "work", "other"],
+                    description: "Type of address",
+                  },
+                },
+              },
+            },
+            organizations: {
+              type: "array",
+              description: "Organizations (replaces all existing if updating)",
+              items: {
+                type: "object",
+                properties: {
+                  name: {
+                    type: "string",
+                    description: "Organization name",
+                  },
+                  title: {
+                    type: "string",
+                    description: "Job title",
+                  },
+                  department: {
+                    type: "string",
+                    description: "Department",
+                  },
+                  type: {
+                    type: "string",
+                    enum: ["work", "school", "other"],
+                    description: "Type of organization",
+                  },
+                },
+              },
+            },
+            biographies: {
+              type: "array",
+              description: "Biographical information (replaces all existing if updating)",
+              items: {
+                type: "object",
+                properties: {
+                  value: {
+                    type: "string",
+                    description: "Biography text",
+                  },
+                  contentType: {
+                    type: "string",
+                    enum: ["TEXT_PLAIN", "TEXT_HTML"],
+                    description: "Content type",
+                  },
+                },
+                required: ["value"],
+              },
+            },
+          },
+          required: ["resourceName", "updatePersonFields"],
+        },
+      },
+      {
+        name: "delete-contact",
+        description: "Delete a contact",
+        inputSchema: {
+          type: "object",
+          properties: {
+            resourceName: {
+              type: "string",
+              description: "Resource name of the contact to delete (e.g., 'people/c1234567890')",
+            },
+          },
+          required: ["resourceName"],
+        },
       }
     ],
   };

@@ -9,6 +9,11 @@ import { CreateEventHandler } from "./core/CreateEventHandler.js";
 import { UpdateEventHandler } from "./core/UpdateEventHandler.js";
 import { DeleteEventHandler } from "./core/DeleteEventHandler.js";
 import { FreeBusyEventHandler } from "./core/FreeBusyEventHandler.js";
+import { ListContactsHandler } from "./core/contacts/ListContactsHandler.js";
+import { GetContactHandler } from "./core/contacts/GetContactHandler.js";
+import { CreateContactHandler } from "./core/contacts/CreateContactHandler.js";
+import { UpdateContactHandler } from "./core/contacts/UpdateContactHandler.js";
+import { DeleteContactHandler } from "./core/contacts/DeleteContactHandler.js";
 
 /**
  * Handles incoming tool calls, validates arguments, calls the appropriate service,
@@ -40,6 +45,11 @@ const handlerMap: Record<string, BaseToolHandler> = {
     "update-event": new UpdateEventHandler(),
     "delete-event": new DeleteEventHandler(),
     "get-freebusy": new FreeBusyEventHandler(),
+    "list-contacts": new ListContactsHandler(),
+    "get-contact": new GetContactHandler(),
+    "create-contact": new CreateContactHandler(),
+    "update-contact": new UpdateContactHandler(),
+    "delete-contact": new DeleteContactHandler(),
 };
 
 function getHandler(toolName: string): BaseToolHandler {
