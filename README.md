@@ -212,6 +212,11 @@ Contributions are welcome! Please open an issue or submit a pull request on [Git
 
 ## Changelog
 
+### v1.1.3
+- Fixed timezone validation to support milliseconds in ISO timestamps
+- Now compatible with JavaScript's `Date.toISOString()` format (e.g., `2024-01-01T00:00:00.000Z`)
+- Improved datetime validation regex to handle both formats with and without milliseconds
+
 ### v1.1.2
 - Improved authentication flow with clear, informative landing page
 - Users now see exactly what permissions Claude will have before connecting
