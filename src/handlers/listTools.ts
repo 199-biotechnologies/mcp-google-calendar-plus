@@ -742,6 +742,468 @@ export function getToolDefinitions() {
           },
           required: ["resourceName"],
         },
+      },
+      {
+        name: "list-emails",
+        description: "List and search emails from Gmail",
+        inputSchema: {
+          type: "object",
+          properties: {
+            query: {
+              type: "string",
+              description: "Gmail search query (e.g., 'is:unread', 'from:someone@example.com', 'subject:meeting', 'has:attachment')",
+            },
+            maxResults: {
+              type: "number",
+              description: "Maximum number of emails to return (default: 20, max: 500)",
+            },
+            pageToken: {
+              type: "string",
+              description: "Token for pagination to get the next page of results",
+            },
+            includeSpamTrash: {
+              type: "boolean",
+              description: "Include emails from SPAM and TRASH (default: false)",
+            },
+            labelIds: {
+              type: "array",
+              description: "Filter by specific label IDs",
+              items: {
+                type: "string"
+              }
+            }
+          },
+          required: [],
+        },
+      },
+      {
+        name: "get-email",
+        description: "Get a specific email with full content",
+        inputSchema: {
+          type: "object",
+          properties: {
+            messageId: {
+              type: "string",
+              description: "The ID of the email message to retrieve",
+            },
+            markAsRead: {
+              type: "boolean",
+              description: "Mark the email as read when retrieving (default: true)",
+            },
+            format: {
+              type: "string",
+              enum: ["full", "metadata", "minimal"],
+              description: "The format to return the message in (default: full)",
+            }
+          },
+          required: ["messageId"],
+        },
+      },
+      {
+        name: "send-email",
+        description: "Send a new email",
+        inputSchema: {
+          type: "object",
+          properties: {
+            to: {
+              oneOf: [
+                { type: "string", format: "email" },
+                { type: "array", items: { type: "string", format: "email" } }
+              ],
+              description: "Recipient email address(es)",
+            },
+            subject: {
+              type: "string",
+              description: "Email subject line",
+            },
+            body: {
+              type: "string",
+              description: "Email body content",
+            },
+            cc: {
+              oneOf: [
+                { type: "string", format: "email" },
+                { type: "array", items: { type: "string", format: "email" } }
+              ],
+              description: "CC recipient email address(es)",
+            },
+            bcc: {
+              oneOf: [
+                { type: "string", format: "email" },
+                { type: "array", items: { type: "string", format: "email" } }
+              ],
+              description: "BCC recipient email address(es)",
+            },
+            isHtml: {
+              type: "boolean",
+              description: "Whether the body is HTML content (default: false)",
+            },
+            replyToMessageId: {
+              type: "string",
+              description: "Message ID to reply to (for threading)",
+            },
+            threadId: {
+              type: "string",
+              description: "Thread ID to reply within",
+            }
+          },
+          required: ["to", "subject", "body"],
+        },
+      },
+      {
+        name: "update-email",
+        description: "Update email properties (labels, read status, etc.)",
+        inputSchema: {
+          type: "object",
+          properties: {
+            messageId: {
+              type: "string",
+              description: "The ID of the email message to update",
+            },
+            addLabelIds: {
+              type: "array",
+              description: "Label IDs to add to the email",
+              items: { type: "string" }
+            },
+            removeLabelIds: {
+              type: "array",
+              description: "Label IDs to remove from the email",
+              items: { type: "string" }
+            },
+            markAsRead: {
+              type: "boolean",
+              description: "Mark the email as read",
+            },
+            markAsUnread: {
+              type: "boolean",
+              description: "Mark the email as unread",
+            },
+            star: {
+              type: "boolean",
+              description: "Star the email",
+            },
+            unstar: {
+              type: "boolean",
+              description: "Unstar the email",
+            },
+            markAsImportant: {
+              type: "boolean",
+              description: "Mark as important",
+            },
+            markAsNotImportant: {
+              type: "boolean",
+              description: "Mark as not important",
+            },
+            archive: {
+              type: "boolean",
+              description: "Archive the email (remove from inbox)",
+            },
+            unarchive: {
+              type: "boolean",
+              description: "Unarchive the email (add to inbox)",
+            },
+            moveToTrash: {
+              type: "boolean",
+              description: "Move to trash",
+            },
+            removeFromTrash: {
+              type: "boolean",
+              description: "Remove from trash",
+            }
+          },
+          required: ["messageId"],
+        },
+      },
+      {
+        name: "delete-email",
+        description: "Delete an email (move to trash or permanently delete)",
+        inputSchema: {
+          type: "object",
+          properties: {
+            messageId: {
+              type: "string",
+              description: "The ID of the email message to delete",
+            },
+            permanent: {
+              type: "boolean",
+              description: "Permanently delete instead of moving to trash (default: false)",
+            }
+          },
+          required: ["messageId"],
+        },
+      },
+      {
+        name: "create-draft",
+        description: "Create an email draft",
+        inputSchema: {
+          type: "object",
+          properties: {
+            to: {
+              oneOf: [
+                { type: "string", format: "email" },
+                { type: "array", items: { type: "string", format: "email" } }
+              ],
+              description: "Recipient email address(es)",
+            },
+            subject: {
+              type: "string",
+              description: "Email subject line",
+            },
+            body: {
+              type: "string",
+              description: "Email body content",
+            },
+            cc: {
+              oneOf: [
+                { type: "string", format: "email" },
+                { type: "array", items: { type: "string", format: "email" } }
+              ],
+              description: "CC recipient email address(es)",
+            },
+            bcc: {
+              oneOf: [
+                { type: "string", format: "email" },
+                { type: "array", items: { type: "string", format: "email" } }
+              ],
+              description: "BCC recipient email address(es)",
+            },
+            isHtml: {
+              type: "boolean",
+              description: "Whether the body is HTML content (default: false)",
+            },
+            replyToMessageId: {
+              type: "string",
+              description: "Message ID to reply to (for threading)",
+            },
+            threadId: {
+              type: "string",
+              description: "Thread ID to reply within",
+            }
+          },
+          required: ["to", "subject", "body"],
+        },
+      },
+      {
+        name: "update-draft",
+        description: "Update an existing email draft",
+        inputSchema: {
+          type: "object",
+          properties: {
+            draftId: {
+              type: "string",
+              description: "The ID of the draft to update",
+            },
+            to: {
+              oneOf: [
+                { type: "string", format: "email" },
+                { type: "array", items: { type: "string", format: "email" } }
+              ],
+              description: "Recipient email address(es)",
+            },
+            subject: {
+              type: "string",
+              description: "Email subject line",
+            },
+            body: {
+              type: "string",
+              description: "Email body content",
+            },
+            cc: {
+              oneOf: [
+                { type: "string", format: "email" },
+                { type: "array", items: { type: "string", format: "email" } }
+              ],
+              description: "CC recipient email address(es)",
+            },
+            bcc: {
+              oneOf: [
+                { type: "string", format: "email" },
+                { type: "array", items: { type: "string", format: "email" } }
+              ],
+              description: "BCC recipient email address(es)",
+            },
+            isHtml: {
+              type: "boolean",
+              description: "Whether the body is HTML content (default: false)",
+            },
+            replyToMessageId: {
+              type: "string",
+              description: "Message ID to reply to (for threading)",
+            },
+            threadId: {
+              type: "string",
+              description: "Thread ID to reply within",
+            }
+          },
+          required: ["draftId", "to", "subject", "body"],
+        },
+      },
+      {
+        name: "send-draft",
+        description: "Send an existing email draft",
+        inputSchema: {
+          type: "object",
+          properties: {
+            draftId: {
+              type: "string",
+              description: "The ID of the draft to send",
+            }
+          },
+          required: ["draftId"],
+        },
+      },
+      {
+        name: "list-labels",
+        description: "List all Gmail labels/folders",
+        inputSchema: {
+          type: "object",
+          properties: {},
+          required: [],
+        },
+      },
+      {
+        name: "create-label",
+        description: "Create a new Gmail label/folder",
+        inputSchema: {
+          type: "object",
+          properties: {
+            name: {
+              type: "string",
+              description: "Name of the label",
+            },
+            messageListVisibility: {
+              type: "string",
+              enum: ["show", "hide"],
+              description: "Whether to show messages with this label in message lists (default: show)",
+            },
+            labelListVisibility: {
+              type: "string",
+              enum: ["labelShow", "labelShowIfUnread", "labelHide"],
+              description: "Whether to show this label in the label list (default: labelShow)",
+            },
+            backgroundColor: {
+              type: "string",
+              description: "Background color for the label (hex color like '#0000FF')",
+            },
+            textColor: {
+              type: "string",
+              description: "Text color for the label (hex color like '#FFFFFF')",
+            }
+          },
+          required: ["name"],
+        },
+      },
+      {
+        name: "update-label",
+        description: "Update a Gmail label/folder",
+        inputSchema: {
+          type: "object",
+          properties: {
+            labelId: {
+              type: "string",
+              description: "The ID of the label to update",
+            },
+            name: {
+              type: "string",
+              description: "New name for the label",
+            },
+            messageListVisibility: {
+              type: "string",
+              enum: ["show", "hide"],
+              description: "Whether to show messages with this label in message lists",
+            },
+            labelListVisibility: {
+              type: "string",
+              enum: ["labelShow", "labelShowIfUnread", "labelHide"],
+              description: "Whether to show this label in the label list",
+            },
+            backgroundColor: {
+              type: "string",
+              description: "Background color for the label (hex color)",
+            },
+            textColor: {
+              type: "string",
+              description: "Text color for the label (hex color)",
+            }
+          },
+          required: ["labelId"],
+        },
+      },
+      {
+        name: "delete-label",
+        description: "Delete a Gmail label/folder",
+        inputSchema: {
+          type: "object",
+          properties: {
+            labelId: {
+              type: "string",
+              description: "The ID of the label to delete",
+            }
+          },
+          required: ["labelId"],
+        },
+      },
+      {
+        name: "batch-update-emails",
+        description: "Update multiple emails at once",
+        inputSchema: {
+          type: "object",
+          properties: {
+            messageIds: {
+              type: "array",
+              description: "Array of email message IDs to update",
+              items: { type: "string" },
+              minItems: 1
+            },
+            addLabelIds: {
+              type: "array",
+              description: "Label IDs to add to all emails",
+              items: { type: "string" }
+            },
+            removeLabelIds: {
+              type: "array",
+              description: "Label IDs to remove from all emails",
+              items: { type: "string" }
+            },
+            markAsRead: {
+              type: "boolean",
+              description: "Mark all emails as read",
+            },
+            markAsUnread: {
+              type: "boolean",
+              description: "Mark all emails as unread",
+            },
+            star: {
+              type: "boolean",
+              description: "Star all emails",
+            },
+            unstar: {
+              type: "boolean",
+              description: "Unstar all emails",
+            },
+            markAsImportant: {
+              type: "boolean",
+              description: "Mark all as important",
+            },
+            markAsNotImportant: {
+              type: "boolean",
+              description: "Mark all as not important",
+            },
+            archive: {
+              type: "boolean",
+              description: "Archive all emails",
+            },
+            unarchive: {
+              type: "boolean",
+              description: "Unarchive all emails",
+            },
+            moveToTrash: {
+              type: "boolean",
+              description: "Move all to trash",
+            }
+          },
+          required: ["messageIds"],
+        },
       }
     ],
   };

@@ -27,7 +27,7 @@ const VERSION = packageJson.version;
 // Create server instance (global for export)
 const server = new Server(
   {
-    name: "google-calendar-contacts",
+    name: "google-workspace",
     version: VERSION,
   },
   {
@@ -149,7 +149,7 @@ async function runAuthServer(): Promise<void> {
 
 function showHelp(): void {
   console.log(`
-Google Calendar & Contacts MCP Server v${VERSION}
+Google Workspace MCP Server v${VERSION}
 
 Usage:
   npx @cocal/google-calendar-mcp [command]
@@ -172,7 +172,7 @@ Environment Variables:
 }
 
 function showVersion(): void {
-  console.log(`Google Calendar & Contacts MCP Server v${VERSION}`);
+  console.log(`Google Workspace MCP Server v${VERSION}`);
 }
 
 // --- Exports & Execution Guard --- 

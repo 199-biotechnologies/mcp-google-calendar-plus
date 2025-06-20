@@ -1,8 +1,8 @@
-# MCP Google Calendar Plus
+# MCP Google Workspace
 
-**The ONLY MCP server that enables Claude, Cursor, Windsurf and other AI systems to fully manage Google Calendar AND Google Contacts** - create, update, and delete events and contacts, not just read them!
+**The ONLY comprehensive MCP server for Google Workspace that enables Claude, Cursor, Windsurf and other AI systems to fully manage Google Calendar, Contacts, AND Gmail** - read, create, update, delete, and organize across all three services!
 
-Enhanced Google Calendar and Contacts integration for Claude Desktop and other AI agents using the Model Context Protocol (MCP). This server provides comprehensive calendar and contact management capabilities with OAuth2 authentication.
+Complete Google Workspace integration for Claude Desktop and other AI agents using the Model Context Protocol (MCP). This server provides comprehensive management capabilities for Calendar, Contacts, and Gmail with OAuth2 authentication.
 
 ## Why This MCP Server?
 
@@ -15,12 +15,21 @@ Other calendar MCP servers only provide **read-only** access. This is the **only
 - ✅ **Manage** multiple calendars
 - ✅ **Check availability** across calendars
 
-### Contact Management (NEW!)
+### Contact Management
 - ✅ **List** and search contacts
 - ✅ **Create** new contacts with full details
 - ✅ **Update** existing contacts
 - ✅ **Delete** contacts
 - ✅ **Manage** contact details (emails, phones, addresses, organizations)
+
+### Gmail Management (NEW!)
+- ✅ **Search** and list emails with powerful queries
+- ✅ **Read** full email content with attachments
+- ✅ **Send** new emails and replies
+- ✅ **Organize** with labels and folders
+- ✅ **Update** email status (read/unread, starred, important)
+- ✅ **Create** and manage drafts
+- ✅ **Batch operations** for bulk email management
 
 ## Features
 
@@ -31,28 +40,37 @@ Other calendar MCP servers only provide **read-only** access. This is the **only
 - **Calendar Management**: List calendars and their properties
 - **Free/Busy Queries**: Check availability across calendars
 
-### Contact Features (NEW!)
+### Contact Features
 - **Contact Search**: Search contacts by name, email, or other criteria
 - **Full Contact Details**: Manage names, emails, phone numbers, addresses, organizations, and notes
 - **Batch Operations**: List contacts with pagination support
 - **Field Selection**: Choose which contact fields to retrieve for optimized responses
 
+### Gmail Features (NEW!)
+- **Advanced Search**: Use Gmail's powerful search operators
+- **Email Management**: Read, send, reply, forward, and delete emails
+- **Label Organization**: Create and manage labels/folders
+- **Draft Management**: Create, update, and send drafts
+- **Batch Operations**: Update multiple emails at once
+- **Thread Support**: Handle email conversations
+- **Attachment Info**: View attachment details (names, sizes, types)
+
 ### Authentication
 - **OAuth2 Authentication**: Secure authentication with automatic token refresh
-- **Dual Permissions**: Single authentication flow for both Calendar and Contacts access
+- **Unified Permissions**: Single authentication flow for Calendar, Contacts, and Gmail access
 
 ## Installation
 
 ### Via npx (Recommended)
 
 ```bash
-npx mcp-google-calendar-plus
+npx mcp-google
 ```
 
 ### Via npm
 
 ```bash
-npm install -g mcp-google-calendar-plus
+npm install -g mcp-google
 ```
 
 ## Setup
@@ -88,9 +106,9 @@ Add this to your Claude Desktop config file:
 ```json
 {
   "mcpServers": {
-    "google-calendar": {
+    "google-workspace": {
       "command": "npx",
-      "args": ["-y", "mcp-google-calendar-plus"],
+      "args": ["-y", "mcp-google"],
       "env": {
         "GOOGLE_CLIENT_ID": "YOUR_CLIENT_ID.apps.googleusercontent.com",
         "GOOGLE_CLIENT_SECRET": "YOUR_CLIENT_SECRET"
@@ -105,9 +123,9 @@ Add this to your Claude Desktop config file:
 ```json
 {
   "mcpServers": {
-    "google-calendar": {
+    "google-workspace": {
       "command": "npx",
-      "args": ["-y", "mcp-google-calendar-plus"],
+      "args": ["-y", "mcp-google"],
       "env": {
         "GOOGLE_OAUTH_CREDENTIALS": "/path/to/downloaded/credentials.json"
       }
@@ -122,10 +140,10 @@ Just use the file path where you saved the JSON file downloaded from Google Clou
 
 1. Restart Claude Desktop
 2. The MCP server will open a browser window for authentication
-3. Log in with your Google account and grant calendar AND contacts permissions
+3. Log in with your Google account and grant Calendar, Contacts, AND Gmail permissions
 4. Tokens will be saved securely for future use
 
-**Note:** If upgrading from a previous version, you'll need to re-authenticate to grant the new contacts permissions.
+**Note:** If upgrading from a previous version, you'll need to re-authenticate to grant the new Gmail permissions.
 
 ## Environment Variables
 
@@ -168,7 +186,7 @@ Query free/busy information across multiple calendars.
 #### list-colors
 List available calendar event colors.
 
-### Contact Tools (NEW!)
+### Contact Tools
 
 #### list-contacts
 List and search contacts with pagination support.
@@ -190,6 +208,47 @@ Update existing contact information with field-specific updates.
 
 #### delete-contact
 Delete contacts from Google Contacts.
+
+### Gmail Tools (NEW!)
+
+#### list-emails
+Search and list emails with powerful Gmail queries.
+
+#### get-email
+Read full email content including body and attachments.
+
+#### send-email
+Send new emails or replies with HTML support.
+
+#### update-email
+Modify email properties (labels, read status, star, archive).
+
+#### delete-email
+Move emails to trash or permanently delete.
+
+#### create-draft
+Create email drafts for later editing.
+
+#### update-draft
+Edit existing email drafts.
+
+#### send-draft
+Send a saved draft.
+
+#### list-labels
+List all Gmail labels/folders.
+
+#### create-label
+Create new labels for organizing emails.
+
+#### update-label
+Modify label properties and colors.
+
+#### delete-label
+Remove labels from Gmail.
+
+#### batch-update-emails
+Perform bulk operations on multiple emails.
 
 ## Example Usage
 
@@ -237,6 +296,33 @@ Find contacts who work at Google
 Update Jane Smith's phone number to 555-5678
 ```
 
+### Gmail Examples
+
+#### Search emails
+```
+Show me all unread emails from this week
+```
+
+#### Send email
+```
+Send an email to john@example.com with subject "Meeting Tomorrow" and body "Let's meet at 2pm"
+```
+
+#### Organize inbox
+```
+Mark all newsletters as read and archive them
+```
+
+#### Manage labels
+```
+Create a label called "Important Projects" and apply it to all emails from my manager
+```
+
+#### Batch operations
+```
+Move all emails older than 30 days to trash
+```
+
 ## Troubleshooting
 
 ### Authentication Issues
@@ -250,9 +336,12 @@ Update Jane Smith's phone number to 555-5678
 - If issues persist, delete the token file and re-authenticate
 
 ### Permission Errors
-- Ensure you've granted all requested calendar and contacts permissions
-- Check that the Google account has access to the calendars and contacts you're trying to access
-- For contacts, ensure the People API is enabled in your Google Cloud project
+- Ensure you've granted all requested Calendar, Contacts, and Gmail permissions
+- Check that the Google account has access to the resources you're trying to access
+- Ensure all required APIs are enabled in your Google Cloud project:
+  - Google Calendar API
+  - Google People API
+  - Gmail API
 
 ## Security
 

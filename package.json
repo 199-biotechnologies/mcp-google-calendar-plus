@@ -1,10 +1,10 @@
 {
-  "name": "mcp-google-calendar-plus",
-  "version": "1.2.0",
-  "description": "The ONLY MCP server for full Google Calendar AND Contacts management (create/update/delete) in Claude, Cursor, Windsurf",
+  "name": "mcp-google",
+  "version": "2.0.0",
+  "description": "The ONLY comprehensive MCP server for Google Workspace - Calendar, Contacts, and Gmail management in Claude, Cursor, Windsurf",
   "type": "module",
   "bin": {
-    "mcp-google-calendar-plus": "build/index.js"
+    "mcp-google": "build/index.js"
   },
   "files": [
     "build/",
@@ -19,6 +19,11 @@
     "windsurf",
     "google-calendar",
     "google-contacts",
+    "google-gmail",
+    "gmail",
+    "email",
+    "google-workspace",
+    "workspace",
     "calendar",
     "contacts",
     "ai",
@@ -30,17 +35,20 @@
     "create-events",
     "update-events",
     "delete-events",
-    "people-api"
+    "people-api",
+    "gmail-api",
+    "email-management",
+    "inbox-management"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/199-biotechnologies/mcp-google-calendar-plus.git"
+    "url": "git+https://github.com/199-mcp/mcp-google.git"
   },
   "bugs": {
-    "url": "https://github.com/199-biotechnologies/mcp-google-calendar-plus/issues"
+    "url": "https://github.com/199-mcp/mcp-google/issues"
   },
-  "homepage": "https://github.com/199-biotechnologies/mcp-google-calendar-plus#readme",
-  "author": "199-biotechnologies",
+  "homepage": "https://github.com/199-mcp/mcp-google#readme",
+  "author": "199-mcp",
   "license": "MIT",
   "scripts": {
     "typecheck": "tsc --noEmit",
