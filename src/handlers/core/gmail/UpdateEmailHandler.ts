@@ -115,8 +115,8 @@ export class UpdateEmailHandler extends BaseToolHandler {
           userId: 'me',
           id: args.messageId,
           requestBody: {
-            addLabelIds: finalAddLabelIds.length > 0 ? finalAddLabelIds : undefined,
-            removeLabelIds: finalRemoveLabelIds.length > 0 ? finalRemoveLabelIds : undefined
+            addLabelIds: finalAddLabelIds,
+            removeLabelIds: finalRemoveLabelIds
           }
         });
         

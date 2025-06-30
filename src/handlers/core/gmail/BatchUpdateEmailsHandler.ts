@@ -98,8 +98,8 @@ export class BatchUpdateEmailsHandler extends BaseToolHandler {
           userId: 'me',
           requestBody: {
             ids: args.messageIds,
-            addLabelIds: finalAddLabelIds.length > 0 ? finalAddLabelIds : undefined,
-            removeLabelIds: finalRemoveLabelIds.length > 0 ? finalRemoveLabelIds : undefined
+            addLabelIds: finalAddLabelIds,
+            removeLabelIds: finalRemoveLabelIds
           }
         });
         
