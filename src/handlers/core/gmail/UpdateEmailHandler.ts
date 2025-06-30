@@ -4,7 +4,7 @@ import { google, gmail_v1 } from "googleapis";
 import { BaseToolHandler } from "../BaseToolHandler.js";
 
 interface UpdateEmailArgs {
-  messageId: string;
+  emailId: string;
   addLabelIds?: string[];
   removeLabelIds?: string[];
   markAsRead?: boolean;
@@ -58,7 +58,7 @@ export class UpdateEmailHandler extends BaseToolHandler {
       if (args.moveToTrash) {
         await gmail.users.messages.trash({
           userId: 'me',
-          id: args.messageId
+          id: args.emailId
         });
         
         return {
@@ -67,7 +67,7 @@ export class UpdateEmailHandler extends BaseToolHandler {
               type: "text",
               text: JSON.stringify({
                 success: true,
-                messageId: args.messageId,
+                messageId: args.emailId,
                 action: 'moved_to_trash'
               }, null, 2)
             }
@@ -78,7 +78,7 @@ export class UpdateEmailHandler extends BaseToolHandler {
       if (args.removeFromTrash) {
         await gmail.users.messages.untrash({
           userId: 'me',
-          id: args.messageId
+          id: args.emailId
         });
         
         return {
@@ -87,7 +87,7 @@ export class UpdateEmailHandler extends BaseToolHandler {
               type: "text",
               text: JSON.stringify({
                 success: true,
-                messageId: args.messageId,
+                messageId: args.emailId,
                 action: 'removed_from_trash'
               }, null, 2)
             }
@@ -105,14 +105,22 @@ export class UpdateEmailHandler extends BaseToolHandler {
       
       // Modify labels if there are any changes
       if (finalAddLabelIds.length > 0 || finalRemoveLabelIds.length > 0) {
+        console.log('UpdateEmail - Calling modify with:', {
+          emailId: args.emailId,
+          addLabelIds: finalAddLabelIds,
+          removeLabelIds: finalRemoveLabelIds
+        });
+        
         const response = await gmail.users.messages.modify({
           userId: 'me',
-          id: args.messageId,
+          id: args.emailId,
           requestBody: {
             addLabelIds: finalAddLabelIds.length > 0 ? finalAddLabelIds : undefined,
             removeLabelIds: finalRemoveLabelIds.length > 0 ? finalRemoveLabelIds : undefined
           }
         });
+        
+        console.log('UpdateEmail - API response:', response.status, response.statusText);
         
         return {
           content: [
@@ -137,13 +145,19 @@ export class UpdateEmailHandler extends BaseToolHandler {
             type: "text",
             text: JSON.stringify({
               success: true,
-              messageId: args.messageId,
+              messageId: args.emailId,
               message: 'No changes were made'
             }, null, 2)
           }
         ]
       };
-    } catch (error) {
+    } catch (error: any) {
+      console.error('UpdateEmail - Error details:', {
+        message: error.message,
+        code: error.code,
+        errors: error.errors,
+        response: error.response?.data
+      });
       this.handleGoogleApiError(error);
       throw error;
     }

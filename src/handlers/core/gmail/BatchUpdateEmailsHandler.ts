@@ -88,7 +88,13 @@ export class BatchUpdateEmailsHandler extends BaseToolHandler {
       
       // Batch modify labels
       if (finalAddLabelIds.length > 0 || finalRemoveLabelIds.length > 0) {
-        await gmail.users.messages.batchModify({
+        console.log('BatchUpdateEmails - Calling batchModify with:', {
+          messageIds: args.messageIds,
+          addLabelIds: finalAddLabelIds,
+          removeLabelIds: finalRemoveLabelIds
+        });
+        
+        const response = await gmail.users.messages.batchModify({
           userId: 'me',
           requestBody: {
             ids: args.messageIds,
@@ -96,6 +102,8 @@ export class BatchUpdateEmailsHandler extends BaseToolHandler {
             removeLabelIds: finalRemoveLabelIds.length > 0 ? finalRemoveLabelIds : undefined
           }
         });
+        
+        console.log('BatchUpdateEmails - API response:', response.status, response.statusText);
         
         return {
           content: [
@@ -126,7 +134,13 @@ export class BatchUpdateEmailsHandler extends BaseToolHandler {
           }
         ]
       };
-    } catch (error) {
+    } catch (error: any) {
+      console.error('BatchUpdateEmails - Error details:', {
+        message: error.message,
+        code: error.code,
+        errors: error.errors,
+        response: error.response?.data
+      });
       this.handleGoogleApiError(error);
       throw error;
     }

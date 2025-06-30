@@ -856,7 +856,7 @@ export function getToolDefinitions() {
         inputSchema: {
           type: "object",
           properties: {
-            messageId: {
+            emailId: {
               type: "string",
               description: "The ID of the email message to update",
             },
