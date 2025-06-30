@@ -745,13 +745,13 @@ export function getToolDefinitions() {
       },
       {
         name: "list-emails",
-        description: "List and search emails from Gmail",
+        description: "Search emails in Gmail. Returns: array with id, threadId only (no content/labels). Use when: finding emails to get IDs for other operations. Note: retrieve full content with get-email per ID.",
         inputSchema: {
           type: "object",
           properties: {
             query: {
               type: "string",
-              description: "Gmail search query (e.g., 'is:unread', 'from:someone@example.com', 'subject:meeting', 'has:attachment')",
+              description: "Gmail search operators: 'from:email@domain.com', 'to:email', 'subject:text', 'is:unread', 'is:read', 'is:starred', 'is:important', 'has:attachment', 'in:inbox', 'in:sent', 'after:2024/1/1', 'before:2024/12/31', 'larger:1M', 'smaller:5M'. Combine with spaces for AND, OR for alternatives.",
             },
             maxResults: {
               type: "number",
@@ -778,7 +778,7 @@ export function getToolDefinitions() {
       },
       {
         name: "get-email",
-        description: "Get a specific email with full content",
+        description: "Retrieve one email by messageId. Returns: full message with headers, body (plain/html), attachments metadata. Use when: reading email content after list-emails. Note: messageId from list-emails required.",
         inputSchema: {
           type: "object",
           properties: {
@@ -801,7 +801,7 @@ export function getToolDefinitions() {
       },
       {
         name: "send-email",
-        description: "Send a new email",
+        description: "Send new email or reply. Returns: sent message id and threadId. Use when: composing new email or replying to thread. For replies: provide replyToMessageId.",
         inputSchema: {
           type: "object",
           properties: {
@@ -852,31 +852,31 @@ export function getToolDefinitions() {
       },
       {
         name: "update-email",
-        description: "Update email properties (labels, read status, etc.)",
+        description: "Modify single email labels/status. Returns: updated message with new labelIds. Use when: marking one email read/unread/starred. For multiple: use batch-update-emails. Labels: UNREAD, STARRED, IMPORTANT, INBOX.",
         inputSchema: {
           type: "object",
           properties: {
             emailId: {
               type: "string",
-              description: "The ID of the email message to update",
+              description: "Message ID from list-emails or get-email response (not email address)",
             },
             addLabelIds: {
               type: "array",
-              description: "Label IDs to add to the email",
+              description: "System labels to add: UNREAD, STARRED, IMPORTANT, INBOX, SPAM, TRASH, or custom label IDs",
               items: { type: "string" }
             },
             removeLabelIds: {
               type: "array",
-              description: "Label IDs to remove from the email",
+              description: "System labels to remove: UNREAD, STARRED, IMPORTANT, INBOX (can't remove DRAFTS, SENT)",
               items: { type: "string" }
             },
             markAsRead: {
               type: "boolean",
-              description: "Mark the email as read",
+              description: "Remove UNREAD label (shortcut for removeLabelIds: ['UNREAD'])",
             },
             markAsUnread: {
               type: "boolean",
-              description: "Mark the email as unread",
+              description: "Add UNREAD label (shortcut for addLabelIds: ['UNREAD'])",
             },
             star: {
               type: "boolean",
@@ -916,13 +916,13 @@ export function getToolDefinitions() {
       },
       {
         name: "delete-email",
-        description: "Delete an email (move to trash or permanently delete)",
+        description: "Move email to trash or delete permanently. Returns: success status. Use when: removing emails. Default: trash (recoverable). Set permanent=true for unrecoverable deletion.",
         inputSchema: {
           type: "object",
           properties: {
             messageId: {
               type: "string",
-              description: "The ID of the email message to delete",
+              description: "Message ID from list-emails or get-email response",
             },
             permanent: {
               type: "boolean",
@@ -934,7 +934,7 @@ export function getToolDefinitions() {
       },
       {
         name: "create-draft",
-        description: "Create an email draft",
+        description: "Create unsent email draft. Returns: draft id and message. Use when: composing email for later editing/sending. Not for immediate send - use send-email instead.",
         inputSchema: {
           type: "object",
           properties: {
@@ -1145,24 +1145,25 @@ export function getToolDefinitions() {
       },
       {
         name: "batch-update-emails",
-        description: "Update multiple emails at once",
+        description: "Modify multiple emails labels/status. Returns: empty on success (no response body). Use when: bulk operations on many emails. Limit: 1000 IDs per request. For single: use update-email.",
         inputSchema: {
           type: "object",
           properties: {
             messageIds: {
               type: "array",
-              description: "Array of email message IDs to update",
+              description: "Array of message IDs from list-emails (not email addresses). Maximum 1000 IDs.",
               items: { type: "string" },
-              minItems: 1
+              minItems: 1,
+              maxItems: 1000
             },
             addLabelIds: {
               type: "array",
-              description: "Label IDs to add to all emails",
+              description: "System labels: UNREAD, STARRED, IMPORTANT, INBOX, SPAM, TRASH (can't add DRAFTS, SENT)",
               items: { type: "string" }
             },
             removeLabelIds: {
               type: "array",
-              description: "Label IDs to remove from all emails",
+              description: "System labels: UNREAD, STARRED, IMPORTANT, INBOX (can't remove DRAFTS, SENT)",
               items: { type: "string" }
             },
             markAsRead: {

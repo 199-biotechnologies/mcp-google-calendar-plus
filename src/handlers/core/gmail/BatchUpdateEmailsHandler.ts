@@ -94,7 +94,7 @@ export class BatchUpdateEmailsHandler extends BaseToolHandler {
           removeLabelIds: finalRemoveLabelIds
         });
         
-        const response = await gmail.users.messages.batchModify({
+        await gmail.users.messages.batchModify({
           userId: 'me',
           requestBody: {
             ids: args.messageIds,
@@ -103,7 +103,8 @@ export class BatchUpdateEmailsHandler extends BaseToolHandler {
           }
         });
         
-        console.log('BatchUpdateEmails - API response:', response.status, response.statusText);
+        // batchModify returns empty response on success
+        console.log('BatchUpdateEmails - Successfully modified', args.messageIds.length, 'messages');
         
         return {
           content: [
