@@ -38,7 +38,7 @@ export function getToolDefinitions() {
     tools: [
       {
         name: "list-calendars",
-        description: "List all available calendars",
+        description: "List user calendars. Returns: array of calendar objects with id, summary, accessRole, backgroundColor, primary. Use when: showing available calendars or finding calendar ID. Note: 'primary' for main calendar.",
         inputSchema: {
           type: "object",
           properties: {}, // No arguments needed
@@ -47,7 +47,7 @@ export function getToolDefinitions() {
       },
       {
         name: "list-events",
-        description: "List events from one or more calendars",
+        description: "List calendar events. Returns: array of event objects with id, summary, start, end, status, recurrence. Use when: viewing schedule, finding events. Note: supports batch (up to 50 calendars).",
         inputSchema: {
           type: "object",
           properties: {
@@ -85,7 +85,7 @@ export function getToolDefinitions() {
       },
       {
         name: "search-events",
-        description: "Search for events in a calendar by text query",
+        description: "Search events by text. Returns: filtered array of events matching query in summary/description/location. Use when: finding specific events by keyword. Note: single calendar only.",
         inputSchema: {
           type: "object",
           properties: {
@@ -113,7 +113,7 @@ export function getToolDefinitions() {
       },
       {
         name: "list-colors",
-        description: "List available color IDs and their meanings for calendar events",
+        description: "Get color palette. Returns: event colors (1-11) and calendar colors with hex values. Use when: displaying color options for event/calendar styling. Note: colorId is string.",
         inputSchema: {
           type: "object",
           properties: {}, // No arguments needed
@@ -122,7 +122,7 @@ export function getToolDefinitions() {
       },
       {
         name: "create-event",
-        description: "Create a new calendar event",
+        description: "Create calendar event. Returns: created event with id, htmlLink, start, end, status. Use when: scheduling new appointments/meetings. Note: supports recurring events via recurrence.",
         inputSchema: {
           type: "object",
           properties: {
@@ -191,7 +191,7 @@ export function getToolDefinitions() {
       },
       {
         name: "update-event",
-        description: "Update an existing calendar event with recurring event modification scope support",
+        description: "Modify existing event. Returns: updated event with id, summary, start, end. Use when: rescheduling, changing details. Note: supports recurring event scopes (single/all/future).",
         inputSchema: {
           type: "object",
           properties: {
@@ -305,7 +305,7 @@ export function getToolDefinitions() {
       },
       {
         name: "delete-event",
-        description: "Delete a calendar event",
+        description: "Remove event from calendar. Returns: empty on success. Use when: canceling appointments. Note: permanent deletion, not recoverable.",
         inputSchema: {
           type: "object",
           properties: {
@@ -323,7 +323,7 @@ export function getToolDefinitions() {
       },
       {
         name: "get-freebusy",
-        description: "Retrieve free/busy information for one or more calendars within a time range",
+        description: "Check calendar availability. Returns: busy time blocks per calendar. Use when: finding available slots, scheduling across calendars. Note: only shows busy/free, not event details.",
         inputSchema: {
           type: "object",
           properties: {
@@ -367,7 +367,7 @@ export function getToolDefinitions() {
       },
       {
         name: "list-contacts",
-        description: "List contacts from Google Contacts",
+        description: "List Google Contacts. Returns: array with resourceName, names, emailAddresses, phoneNumbers per contact. Use when: viewing contact list, searching by name. Note: use personFields to limit data.",
         inputSchema: {
           type: "object",
           properties: {
@@ -405,7 +405,7 @@ export function getToolDefinitions() {
       },
       {
         name: "get-contact",
-        description: "Get details of a specific contact",
+        description: "Retrieve one contact by resourceName. Returns: full contact with all requested fields. Use when: viewing detailed contact info. Note: resourceName format is 'people/c[ID]'.",
         inputSchema: {
           type: "object",
           properties: {
@@ -427,7 +427,7 @@ export function getToolDefinitions() {
       },
       {
         name: "create-contact",
-        description: "Create a new contact in Google Contacts",
+        description: "Create new contact. Returns: created contact with resourceName, etag, metadata. Use when: adding new person to contacts. Note: returns new resourceName for future operations.",
         inputSchema: {
           type: "object",
           properties: {
@@ -575,7 +575,7 @@ export function getToolDefinitions() {
       },
       {
         name: "update-contact",
-        description: "Update an existing contact",
+        description: "Modify existing contact. Returns: updated contact with new etag. Use when: changing contact details. Note: requires updatePersonFields to specify what to update.",
         inputSchema: {
           type: "object",
           properties: {
@@ -731,7 +731,7 @@ export function getToolDefinitions() {
       },
       {
         name: "delete-contact",
-        description: "Delete a contact",
+        description: "Remove contact permanently. Returns: empty on success. Use when: deleting person from contacts. Note: permanent deletion, use resourceName from list/get.",
         inputSchema: {
           type: "object",
           properties: {
@@ -856,7 +856,7 @@ export function getToolDefinitions() {
         inputSchema: {
           type: "object",
           properties: {
-            emailId: {
+            messageId: {
               type: "string",
               description: "Message ID from list-emails or get-email response (not email address)",
             },
@@ -985,7 +985,7 @@ export function getToolDefinitions() {
       },
       {
         name: "update-draft",
-        description: "Update an existing email draft",
+        description: "Modify existing draft. Returns: updated draft with id, message. Use when: editing unsent draft content. Note: replaces entire draft content.",
         inputSchema: {
           type: "object",
           properties: {
@@ -1040,7 +1040,7 @@ export function getToolDefinitions() {
       },
       {
         name: "send-draft",
-        description: "Send an existing email draft",
+        description: "Send saved draft. Returns: sent message with id, threadId, labelIds. Use when: sending previously created draft. Note: draft is deleted after sending.",
         inputSchema: {
           type: "object",
           properties: {
@@ -1054,7 +1054,7 @@ export function getToolDefinitions() {
       },
       {
         name: "list-labels",
-        description: "List all Gmail labels/folders",
+        description: "List Gmail labels. Returns: array with id, name, type (system/user). Use when: showing folder structure, finding label IDs. Note: includes system labels like INBOX, SENT.",
         inputSchema: {
           type: "object",
           properties: {},
@@ -1063,7 +1063,7 @@ export function getToolDefinitions() {
       },
       {
         name: "create-label",
-        description: "Create a new Gmail label/folder",
+        description: "Create custom label. Returns: new label with id, name, type='user'. Use when: organizing emails with new categories. Note: can't create system labels.",
         inputSchema: {
           type: "object",
           properties: {
@@ -1095,7 +1095,7 @@ export function getToolDefinitions() {
       },
       {
         name: "update-label",
-        description: "Update a Gmail label/folder",
+        description: "Modify label properties. Returns: updated label. Use when: renaming labels, changing visibility. Note: can't modify system labels.",
         inputSchema: {
           type: "object",
           properties: {
@@ -1131,7 +1131,7 @@ export function getToolDefinitions() {
       },
       {
         name: "delete-label",
-        description: "Delete a Gmail label/folder",
+        description: "Remove custom label. Returns: empty on success. Use when: cleaning up unused labels. Note: can't delete system labels, emails keep label reference.",
         inputSchema: {
           type: "object",
           properties: {
