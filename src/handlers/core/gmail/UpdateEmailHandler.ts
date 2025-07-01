@@ -2,21 +2,12 @@ import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { OAuth2Client } from "google-auth-library";
 import { google, gmail_v1 } from "googleapis";
 import { BaseToolHandler } from "../BaseToolHandler.js";
+import { LabelMutationBuilder, LabelMutationFlags } from "./utils/labelMutationBuilder.js";
 
-interface UpdateEmailArgs {
+interface UpdateEmailArgs extends LabelMutationFlags {
   messageId: string;
-  addLabelIds?: string[];
-  removeLabelIds?: string[];
-  markAsRead?: boolean;
-  markAsUnread?: boolean;
-  star?: boolean;
-  unstar?: boolean;
-  markAsImportant?: boolean;
-  markAsNotImportant?: boolean;
   moveToTrash?: boolean;
   removeFromTrash?: boolean;
-  archive?: boolean;
-  unarchive?: boolean;
 }
 
 export class UpdateEmailHandler extends BaseToolHandler {
@@ -24,37 +15,7 @@ export class UpdateEmailHandler extends BaseToolHandler {
     try {
       const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
       
-      // Build label modifications
-      const addLabelIds: string[] = args.addLabelIds || [];
-      const removeLabelIds: string[] = args.removeLabelIds || [];
-      
-      // Handle convenience flags
-      if (args.markAsRead) {
-        removeLabelIds.push('UNREAD');
-      }
-      if (args.markAsUnread) {
-        addLabelIds.push('UNREAD');
-      }
-      if (args.star) {
-        addLabelIds.push('STARRED');
-      }
-      if (args.unstar) {
-        removeLabelIds.push('STARRED');
-      }
-      if (args.markAsImportant) {
-        addLabelIds.push('IMPORTANT');
-      }
-      if (args.markAsNotImportant) {
-        removeLabelIds.push('IMPORTANT');
-      }
-      if (args.archive) {
-        removeLabelIds.push('INBOX');
-      }
-      if (args.unarchive) {
-        addLabelIds.push('INBOX');
-      }
-      
-      // Handle trash operations
+      // Handle trash operations separately
       if (args.moveToTrash) {
         await gmail.users.messages.trash({
           userId: 'me',
@@ -95,58 +56,101 @@ export class UpdateEmailHandler extends BaseToolHandler {
         };
       }
       
-      // Remove duplicates
-      const uniqueAddLabelIds = [...new Set(addLabelIds)];
-      const uniqueRemoveLabelIds = [...new Set(removeLabelIds)];
+      // Build label mutations with validation
+      const mutation = LabelMutationBuilder.build(args);
       
-      // Remove any labels that appear in both lists
-      const finalAddLabelIds = uniqueAddLabelIds.filter(id => !uniqueRemoveLabelIds.includes(id));
-      const finalRemoveLabelIds = uniqueRemoveLabelIds.filter(id => !uniqueAddLabelIds.includes(id));
-      
-      // Modify labels if there are any changes
-      if (finalAddLabelIds.length > 0 || finalRemoveLabelIds.length > 0) {
-        console.log('UpdateEmail - Calling modify with:', {
-          messageId: args.messageId,
-          addLabelIds: finalAddLabelIds,
-          removeLabelIds: finalRemoveLabelIds
-        });
-        
-        const response = await gmail.users.messages.modify({
-          userId: 'me',
-          id: args.messageId,
-          requestBody: {
-            addLabelIds: finalAddLabelIds,
-            removeLabelIds: finalRemoveLabelIds
-          }
-        });
-        
-        console.log('UpdateEmail - API response:', response.status, response.statusText);
-        
+      // Check if there are any changes to make
+      if (mutation.addLabelIds.length === 0 && mutation.removeLabelIds.length === 0) {
         return {
           content: [
             {
               type: "text",
               text: JSON.stringify({
                 success: true,
-                messageId: response.data.id,
-                threadId: response.data.threadId,
-                labelIds: response.data.labelIds,
-                addedLabels: finalAddLabelIds,
-                removedLabels: finalRemoveLabelIds
+                messageId: args.messageId,
+                message: 'No changes were made'
               }, null, 2)
             }
           ]
         };
       }
-
+      
+      // Check if message can be modified (TRASH/SPAM restrictions)
+      const preCheck = await gmail.users.messages.get({
+        userId: 'me',
+        id: args.messageId,
+        format: 'minimal'
+      });
+      
+      const currentLabels = preCheck.data.labelIds || [];
+      
+      if (!LabelMutationBuilder.canModifyLabels(currentLabels, mutation)) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                success: false,
+                messageId: args.messageId,
+                error: 'Cannot modify labels on messages in TRASH or SPAM folders',
+                currentLabels: currentLabels
+              }, null, 2)
+            }
+          ]
+        };
+      }
+      
+      console.log('UpdateEmail - Calling modify with:', {
+        messageId: args.messageId,
+        addLabelIds: mutation.addLabelIds,
+        removeLabelIds: mutation.removeLabelIds
+      });
+      
+      const response = await gmail.users.messages.modify({
+        userId: 'me',
+        id: args.messageId,
+        requestBody: {
+          addLabelIds: mutation.addLabelIds,
+          removeLabelIds: mutation.removeLabelIds
+        }
+      });
+      
+      console.log('UpdateEmail - API response:', response.status, response.statusText);
+      
+      // Verify the change took effect
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const postCheck = await gmail.users.messages.get({
+        userId: 'me',
+        id: args.messageId,
+        format: 'minimal'
+      });
+      
+      const finalLabels = postCheck.data.labelIds || [];
+      
+      // Verify changes were applied
+      const expectedAdded = mutation.addLabelIds.every(label => 
+        finalLabels.includes(label)
+      );
+      const expectedRemoved = mutation.removeLabelIds.every(label => 
+        !finalLabels.includes(label)
+      );
+      
+      const verified = expectedAdded && expectedRemoved;
+      
       return {
         content: [
           {
             type: "text",
             text: JSON.stringify({
-              success: true,
-              messageId: args.messageId,
-              message: 'No changes were made'
+              success: verified,
+              messageId: response.data.id,
+              threadId: response.data.threadId,
+              labelIds: finalLabels,
+              addedLabels: mutation.addLabelIds,
+              removedLabels: mutation.removeLabelIds,
+              verified: verified,
+              warning: verified ? undefined : 'Changes may not have been fully applied'
             }, null, 2)
           }
         ]
