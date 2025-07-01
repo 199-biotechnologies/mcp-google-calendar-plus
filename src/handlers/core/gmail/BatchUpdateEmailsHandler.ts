@@ -18,6 +18,15 @@ interface BatchUpdateEmailsArgs {
   moveToTrash?: boolean;
 }
 
+interface MessageVerification {
+  id: string;
+  success: boolean;
+  preLabels?: string[];
+  postLabels?: string[];
+  error?: string;
+  skippedReason?: string;
+}
+
 export class BatchUpdateEmailsHandler extends BaseToolHandler {
   async runTool(args: BatchUpdateEmailsArgs, oauth2Client: OAuth2Client): Promise<CallToolResult> {
     try {
@@ -88,100 +97,183 @@ export class BatchUpdateEmailsHandler extends BaseToolHandler {
       
       // Batch modify labels
       if (finalAddLabelIds.length > 0 || finalRemoveLabelIds.length > 0) {
-        console.log('BatchUpdateEmails - Calling batchModify with:', {
-          messageIds: args.messageIds,
+        console.log('BatchUpdateEmails - Starting operation:', {
+          totalMessages: args.messageIds.length,
           addLabelIds: finalAddLabelIds,
           removeLabelIds: finalRemoveLabelIds
         });
         
-        // Process in chunks of 100 (API limit) with better error handling
-        const chunkSize = 100;
-        const results = {
-          successful: [] as string[],
-          failed: [] as { id: string; error: string }[],
-          chunks: [] as { index: number; messageCount: number; status: string }[]
-        };
+        // Pre-fetch message states to filter out invalid/inaccessible messages
+        console.log('BatchUpdateEmails - Pre-fetching message states...');
+        const validMessages: string[] = [];
+        const invalidMessages: MessageVerification[] = [];
         
-        for (let i = 0; i < args.messageIds.length; i += chunkSize) {
-          const chunk = args.messageIds.slice(i, i + chunkSize);
-          const chunkIndex = Math.floor(i / chunkSize);
+        // Check each message before attempting batch update
+        for (const messageId of args.messageIds) {
+          try {
+            const message = await gmail.users.messages.get({
+              userId: 'me',
+              id: messageId,
+              format: 'minimal'
+            });
+            
+            // Skip messages in SPAM or TRASH for certain operations
+            const labels = message.data.labelIds || [];
+            if ((labels.includes('SPAM') || labels.includes('TRASH')) && 
+                (removeLabelIds.includes('UNREAD') || addLabelIds.includes('INBOX'))) {
+              invalidMessages.push({
+                id: messageId,
+                success: false,
+                skippedReason: 'Message in SPAM/TRASH - cannot modify UNREAD/INBOX labels',
+                preLabels: labels
+              });
+            } else {
+              validMessages.push(messageId);
+            }
+          } catch (error: any) {
+            invalidMessages.push({
+              id: messageId,
+              success: false,
+              error: error.message || 'Message not accessible',
+              skippedReason: 'Failed to access message'
+            });
+          }
+        }
+        
+        console.log(`BatchUpdateEmails - ${validMessages.length} valid messages, ${invalidMessages.length} invalid/skipped`);
+        
+        // Process valid messages in sequential chunks to avoid rate limits
+        const chunkSize = 100;
+        const results: MessageVerification[] = [...invalidMessages];
+        
+        for (let i = 0; i < validMessages.length; i += chunkSize) {
+          const chunk = validMessages.slice(i, i + chunkSize);
+          const chunkIndex = Math.floor(i / chunkSize) + 1;
+          const totalChunks = Math.ceil(validMessages.length / chunkSize);
+          
+          console.log(`BatchUpdateEmails - Processing chunk ${chunkIndex}/${totalChunks} (${chunk.length} messages)`);
+          
+          // Add delay between chunks to avoid rate limits
+          if (i > 0) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
           
           try {
-            // First verify these messages exist
-            console.log(`BatchUpdateEmails - Processing chunk ${chunkIndex + 1} with ${chunk.length} messages`);
+            // Log the exact request
+            const batchRequest = {
+              ids: chunk,
+              addLabelIds: finalAddLabelIds,
+              removeLabelIds: finalRemoveLabelIds
+            };
+            console.log('BatchUpdateEmails - Request body:', JSON.stringify(batchRequest));
             
-            await gmail.users.messages.batchModify({
+            // Execute batch modify
+            const response = await gmail.users.messages.batchModify({
               userId: 'me',
-              requestBody: {
-                ids: chunk,
-                addLabelIds: finalAddLabelIds,
-                removeLabelIds: finalRemoveLabelIds
+              requestBody: batchRequest
+            });
+            
+            // Log response headers for rate limit info
+            if (response.headers) {
+              console.log('BatchUpdateEmails - Response headers:', {
+                'x-ratelimit-limit': response.headers['x-ratelimit-limit'],
+                'x-ratelimit-remaining': response.headers['x-ratelimit-remaining'],
+                'status': response.status
+              });
+            }
+            
+            // Verify each message was actually updated
+            console.log(`BatchUpdateEmails - Verifying chunk ${chunkIndex} results...`);
+            const verificationPromises = chunk.map(async (messageId) => {
+              try {
+                const postMessage = await gmail.users.messages.get({
+                  userId: 'me',
+                  id: messageId,
+                  format: 'minimal'
+                });
+                
+                const postLabels = postMessage.data.labelIds || [];
+                
+                // Check if expected changes were applied
+                const expectedAdded = finalAddLabelIds.every(label => postLabels.includes(label));
+                const expectedRemoved = finalRemoveLabelIds.every(label => !postLabels.includes(label));
+                const success = expectedAdded && expectedRemoved;
+                
+                return {
+                  id: messageId,
+                  success,
+                  postLabels,
+                  error: success ? undefined : 'Labels not updated as expected'
+                } as MessageVerification;
+              } catch (error: any) {
+                return {
+                  id: messageId,
+                  success: false,
+                  error: `Verification failed: ${error.message}`
+                } as MessageVerification;
               }
             });
             
-            results.successful.push(...chunk);
-            results.chunks.push({
-              index: chunkIndex,
-              messageCount: chunk.length,
-              status: 'success'
-            });
+            const chunkResults = await Promise.all(verificationPromises);
+            results.push(...chunkResults);
             
-            console.log(`BatchUpdateEmails - Chunk ${chunkIndex + 1} succeeded`);
-          } catch (chunkError: any) {
-            console.error(`BatchUpdateEmails - Chunk ${chunkIndex + 1} failed:`, chunkError);
+            const successCount = chunkResults.filter(r => r.success).length;
+            console.log(`BatchUpdateEmails - Chunk ${chunkIndex}: ${successCount}/${chunk.length} verified as updated`);
             
-            // If batch fails, try individual messages to identify which ones are problematic
-            if (chunkError.code === 400 || chunkError.code === 404) {
-              console.log(`BatchUpdateEmails - Retrying chunk ${chunkIndex + 1} individually`);
+            // If some failed in this chunk, retry individually
+            const failedInChunk = chunkResults.filter(r => !r.success);
+            if (failedInChunk.length > 0) {
+              console.log(`BatchUpdateEmails - Retrying ${failedInChunk.length} failed messages individually...`);
               
-              for (const messageId of chunk) {
+              for (const failed of failedInChunk) {
                 try {
                   await gmail.users.messages.modify({
                     userId: 'me',
-                    id: messageId,
+                    id: failed.id,
                     requestBody: {
                       addLabelIds: finalAddLabelIds,
                       removeLabelIds: finalRemoveLabelIds
                     }
                   });
-                  results.successful.push(messageId);
+                  
+                  // Update result
+                  const resultIndex = results.findIndex(r => r.id === failed.id);
+                  if (resultIndex !== -1) {
+                    results[resultIndex] = {
+                      id: failed.id,
+                      success: true,
+                      error: undefined
+                    };
+                  }
                 } catch (individualError: any) {
-                  console.error(`BatchUpdateEmails - Individual message ${messageId} failed:`, individualError);
-                  results.failed.push({
-                    id: messageId,
-                    error: individualError.message || 'Unknown error'
-                  });
+                  console.error(`BatchUpdateEmails - Individual retry failed for ${failed.id}:`, individualError.message);
                 }
               }
-              
-              results.chunks.push({
-                index: chunkIndex,
-                messageCount: chunk.length,
-                status: `partial (${results.successful.filter(id => chunk.includes(id)).length}/${chunk.length} succeeded)`
-              });
-            } else {
-              // For other errors, mark entire chunk as failed
-              chunk.forEach(id => {
-                results.failed.push({
-                  id,
-                  error: chunkError.message || 'Batch operation failed'
-                });
-              });
-              
-              results.chunks.push({
-                index: chunkIndex,
-                messageCount: chunk.length,
-                status: 'failed'
-              });
             }
+            
+          } catch (chunkError: any) {
+            console.error(`BatchUpdateEmails - Chunk ${chunkIndex} failed entirely:`, chunkError);
+            
+            // Mark all messages in chunk as failed
+            chunk.forEach(id => {
+              results.push({
+                id,
+                success: false,
+                error: chunkError.message || 'Batch operation failed'
+              });
+            });
           }
         }
         
-        // Log summary
-        console.log('BatchUpdateEmails - Operation complete:', {
+        // Calculate final statistics
+        const successful = results.filter(r => r.success);
+        const failed = results.filter(r => !r.success);
+        
+        console.log('BatchUpdateEmails - Final summary:', {
           total: args.messageIds.length,
-          successful: results.successful.length,
-          failed: results.failed.length
+          successful: successful.length,
+          failed: failed.length,
+          skipped: invalidMessages.length
         });
         
         return {
@@ -189,18 +281,23 @@ export class BatchUpdateEmailsHandler extends BaseToolHandler {
             {
               type: "text",
               text: JSON.stringify({
-                success: results.failed.length === 0,
+                success: failed.length === 0,
                 action: 'batch_modified',
                 summary: {
                   total: args.messageIds.length,
-                  successful: results.successful.length,
-                  failed: results.failed.length
+                  successful: successful.length,
+                  failed: failed.length,
+                  skipped: invalidMessages.length
                 },
-                chunks: results.chunks,
-                successfulIds: results.successful,
-                failedIds: results.failed,
-                addedLabels: finalAddLabelIds,
-                removedLabels: finalRemoveLabelIds
+                details: {
+                  successfulIds: successful.map(r => r.id),
+                  failedOperations: failed.map(r => ({
+                    id: r.id,
+                    reason: r.error || r.skippedReason || 'Unknown error'
+                  })),
+                  addedLabels: finalAddLabelIds,
+                  removedLabels: finalRemoveLabelIds
+                }
               }, null, 2)
             }
           ]
@@ -220,7 +317,7 @@ export class BatchUpdateEmailsHandler extends BaseToolHandler {
         ]
       };
     } catch (error: any) {
-      console.error('BatchUpdateEmails - Error details:', {
+      console.error('BatchUpdateEmails - Fatal error:', {
         message: error.message,
         code: error.code,
         errors: error.errors,
